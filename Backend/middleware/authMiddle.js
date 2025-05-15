@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 
 const authenticateUserr = (req, res, next) => {
   const authenticateHeader = req.headers.authorization;
-};
+
 
 if (!authenticateHeader || authenticateHeader.startsWith("Bearer ")) {
   return res.sendStatus(401).json({ msg: "No token provided" });
@@ -17,6 +17,7 @@ try {
   console.error(err);
   return res.status(400).json({ msg: "Invalid token" });
 };
+}
 
 const authorizeDRoles = (...allowedRoles) => {
     return (req, res, next) => {
