@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema(
   {
-    userName: {
+    username: {
       type: String,
       required: true,
     },
     email: {
       type: String,
       required: true,
-    },
+    },  
     role: {
       type: String,
-      following: ["SUPERADMIN", "ADMIN", "UNITMANAGER", "USER"],
+      enum: ["SUPERADMIN", "ADMIN", "UNITMANAGER", "USER"],
       required: true,
     },
     password: {
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     userId: {
       type: String,
-      required: true,
+      required: false,
     },
     groupBy: {
       type: String,
@@ -31,24 +31,24 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+userSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const rolePrefix = {
+      ADMIN: "A",
+      UNITMANAGER: "UM",
+      USER: "U",
+    }[this.role];
 
-userSchema.pre('save', async function(next){
-    if (this.isNew){
-        const rPrefix = {
-            ADMIN : "AD",
-            UNITMANAGER : "UM",
-            USER : "US",
-        }[this.role]
+    if (rolePrefix) {
+      const count = await mongoose.models.User.countDocuments({ role: this.role });
+      this.userId = `${rolePrefix}${count + 1}`;
+    } else if (this.role === "SUPERADMIN") {
+      this.userId = "S1";
     }
-    if (rPrefix){
-        const User = mongoose.model('User', userSchema);
-        const count = await User.countDocuments({ role: this.role });
-        this.userId = `${rPrefix}${count + 1}`;
-    } else if (this.role === "SUPERADMIN"){
-        this.userId = `SA1`;
-    }
-    next();
-})
+  }
+
+  next();
+});
 
 
 

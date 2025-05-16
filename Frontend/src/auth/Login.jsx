@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import API from "../api/axios";
 import { useNavigate } from "react-router-dom";
-const jwtDecode = require("jwt-decode");
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,12 +18,16 @@ const Login = () => {
         password,
         timezone,
       });
-      localStorage.setItem("token", res.data.token);
-      const role = jwtDecode(res.data.token).role;
-      navigate("/dashboard", { state: { role } });
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+        const role = jwtDecode(res.data.token).role;
+        navigate("/dashboard", { state: { role } });
+      } else {
+        alert("Login failed: No token received.");
+      }
     } catch (err) {
       console.error(err);
-      alert("Invalid credentials");
+      alert(err.response?.data?.msg || "Invalid credentials");
     }
   };
   return (

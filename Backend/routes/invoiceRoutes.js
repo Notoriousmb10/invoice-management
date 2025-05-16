@@ -15,28 +15,28 @@ const {
 router.post(
   "/create",
   authenticateUserr,
-  authorizeDRoles("ADMIN", "UNITMANAGER", "USER"),
+  authorizeDRoles("SUPERADMIN", "ADMIN", "UNITMANAGER", "USER"),
   createInvoice
 );
 
 router.patch(
   "/update/:invoiceNumber",
   authenticateUserr,
-  authorizeDRoles("ADMIN", "UNITMANAGER"),
+  authorizeDRoles("SUPERADMIN", "ADMIN", "UNITMANAGER"),
   updateInvoice
 );
 
 router.delete(
   "/delete/:invoiceNumber",
   authenticateUserr,
-  authorizeDRoles("ADMIN", "UNITMANAGER"),
+  authorizeDRoles("SUPERADMIN", "ADMIN", "UNITMANAGER"),
   deleteInvoice
 );
 
 router.get(
   "/",
   authenticateUserr,
-  authorizeDRoles("ADMIN", "UNITMANAGER", "USER"),
+  authorizeDRoles("SUPERADMIN", "ADMIN", "UNITMANAGER", "USER"),
   listallInvoices
 );
 

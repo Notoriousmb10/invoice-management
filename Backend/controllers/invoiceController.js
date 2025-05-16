@@ -1,5 +1,6 @@
 const Invoice = require("../models/Invoice");
 const getFinancialYear = require("../utils/getFinancialYear");
+const User = require("../models/User");
 
 const createInvoice = async (req, res) => {
   try {
@@ -7,7 +8,7 @@ const createInvoice = async (req, res) => {
     if (!invoiceNumber || !invoiceDate || !invoiceAmount) {
       return res.status(400).json({ msg: "All fields are required" });
     }
-    const fy = getFinancialYear(invoiceData);
+    const fy = getFinancialYear(invoiceDate);
     const exitising = await Invoice.findOne({
       invoiceNumber,
       financialYear: fy,
@@ -71,8 +72,8 @@ const updateInvoice = async (req, res) => {
   }
 };
 
-const deleteInvoice = async(req, res) => {
-    try {
+const deleteInvoice = async (req, res) => {
+  try {
     const { invoiceNumber } = req.params;
 
     const invoice = await Invoice.findOneAndDelete({ invoiceNumber });
@@ -85,45 +86,90 @@ const deleteInvoice = async(req, res) => {
   }
 };
 
-const listallInvoices = async(req, res)=> {
-    try{
+const listallInvoices = async (req, res) => {
+  try {
+    const { fy, startDate, endDate, invoiceNumber, invoiceAmount } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-        const {
-            fy, startDate, endDate, invoiceNumber, invoiceAmount
-        } = req.query;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page-1) * limit;
-        
-        const filter = {}
-        
-        if (fy) {
-            filter.financialYear = fy;
-        }
-        if (invoiceNumber) {
-            filter.invoiceNumber = invoiceNumber;
-        }
-        if (startDate && endDate) {
-            filter.invoiceDate = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate)
-            }
-        }
-        const invoices = await Invoice.find(filter)
-        .limit(limit)
-        .skip(skip)
-        .sort({ invoiceDate: -1 })
-        
-        res.json({invoices})
-    }catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: "Server error for listing invoices" });
+    const filter = {};
+    const requester = req.user;
+    let allowedUserIds = [];
+
+    if (requester.role === "SUPERADMIN") {
+    } else if (requester.role === "ADMIN") {
+      let adminGroupAdmins = [requester.userId];
+      if (requester.groupId) {
+        const adminInGroups = await User.find({
+          groupId: requester.groupId,
+          role: "ADMIN",
+        }).select("_id");
+        adminGroupAdmins = adminInGroups.map((a) => a._id.toString());
+      }
+      const unitManagers = await User.find({
+        role: "UNITMANAGER",
+        createdBy: { $in: adminGroupAdmins },
+      }).select("_id");
+      const unitManagerIds = unitManagers.map((um) => um._id.toString());
+
+      const users = await User.find({
+        role: "USER",
+        createdBy: { $in: unitManagerIds },
+      }).select("_id");
+      const userIds = users.map((u) => u._id.toString());
+
+      allowedUserIds = [...adminGroupAdmins, ...unitManagerIds, ...userIds];
+      filter.createdBy = { $in: allowedUserIds };
+    } else if (requester.role === "UNITMANAGER") {
+      let unitManagersInGroup = [requester.userId];
+      if (requester.groupBy) {
+        const ums = await User.find({
+          role: "UNITMANAGER",
+          groupBy: requester.groupBy,
+        }).select("_id");
+        unitManagersInGroup = ums.map((um) => um._id.toString());
+      }
+      const users = await User.find({
+        role: "USER",
+        createdBy: { $in: unitManagersInGroup },
+      }).select("_id");
+      const userIds = users.map((u) => u._id.toString());
+
+      allowedUserIds = [...unitManagersInGroup, ...userIds];
+      filter.createdBy = { $in: allowedUserIds };
+    } else if (requester.role === "USER") {
+      filter.createdBy = requester.userId;
     }
-    
-}
+
+    if (fy) {
+      filter.financialYear = fy;
+    }
+    if (invoiceNumber) {
+      filter.invoiceNumber = invoiceNumber;
+    }
+    if (startDate && endDate) {
+      filter.invoiceDate = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+    const invoices = await Invoice.find(filter)
+    // .populate({path: "createdBy", select: "username role userId"})
+      .limit(limit)
+      .skip(skip)
+      .sort({ invoiceDate: -1 });
+
+    res.json({ invoices });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error for listing invoices" });
+  }
+};
 
 module.exports = {
-    createInvoice,
-    updateInvoice,
-    deleteInvoice,
-    listallInvoices
-}
+  createInvoice,
+  updateInvoice,
+  deleteInvoice,
+  listallInvoices,
+};

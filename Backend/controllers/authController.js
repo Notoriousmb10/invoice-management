@@ -4,50 +4,70 @@ const User = require("../models/User");
 
 const register = async (req, res) => {
   try {
-    const { userName, email, role, password, userId, groupBy, createdBy } =
-      req.body;
+    const { username, email, role, password } = req.body;
+    console.log(req.body);
 
-    if (!userName || !email || !password || !role) {
+    if (!username || !email || !password || !role) {
       return res.status(400).json({ message: "Please fill all the fields" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+    if (role !== "SUPERADMIN") {
+      return res.status(403).json({
+        msg: "Public registration is disabled for non-SUPERADMIN roles.",
+      });
     }
 
-    const hash = await bcrypt.hash(password, 10);
-    const user = new User({
-      userName,
+    const existingSuperAdmin = await User.findOne({ role: "SUPERADMIN" });
+    if (existingSuperAdmin) {
+      return res.status(403).json({
+        msg: "SUPERADMIN already exists. Contact system administrator.",
+      });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ msg: "Email already exists." });
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      username,
       email,
       role,
-      password: hash,
-      userId,
-      groupBy,
-      createdBy,
+      password: hashed,
     });
-    await user.save();
-    res
-      .status(201)
-      .json({ message: "User created successfully", userId: user.userId });
+
+    await newUser.save();
+
+    res.status(201).json({
+      msg: "SUPERADMIN registered successfully.",
+      userId: newUser.userId,
+    });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Internal server error" });
+    console.error(err);
+    res.status(500).json({ msg: "Server error during registration." });
   }
 };
 
 const login = async (req, res) => {
   try {
-    const { email, password, timeZone } = req.body;
+    const { email, password, timezone } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "User not Found" });
     }
+    console.log(" Raw input password:", password);
+    console.log(" Hashed password in DB:", user.password);
+
     const isMatch = await bcrypt.compare(password, user.password);
+
+    console.log(" Password Match:", isMatch);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    if (!timeZone || typeof timeZone !== "string") {
+    console.log(" Timezone received:", timezone);
+    console.log(" Type of timezone:", typeof timezone);
+
+    if (!timezone || typeof timezone !== "string") {
       return res.status(400).json({ message: "invalid timezone" });
     }
     const token = jwt.sign(
@@ -60,11 +80,13 @@ const login = async (req, res) => {
       { expiresIn: "2h" }
     );
     res.json({
-      userName: user.userName,
+      token,
+      username: user.username,
       email: user.email,
       role: user.role,
       userId: user.userId,
       groupId: user.groupId || null,
+
     });
   } catch (err) {
     console.log(err);
@@ -72,8 +94,7 @@ const login = async (req, res) => {
   }
 };
 
-
 module.exports = {
-    register,
-    login,
-}
+  register,
+  login,
+};

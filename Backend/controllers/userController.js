@@ -1,12 +1,12 @@
 const User = require("../models/User");
-
+const bcrypt = require("bcryptjs");
 const createUser = async (req, res) => {
   try {
     const creatorRole = req.user.role;
     const creatorId = req.user.userId;
 
-    const { userName, email, role, password, groupBy } = req.body;
-
+    const { username, email, role, password, groupBy } = req.body;
+    console.log(req.body);
     const roles = {
       SUPERADMIN: "ADMIN",
       ADMIN: "UNITMANAGER",
@@ -22,16 +22,17 @@ const createUser = async (req, res) => {
     if (exisitng) {
       return res.status(400).json({ msg: "User already exists" });
     }
-    const bcrypt = require("bcrypt");
+    
     const hash = await bcrypt.hash(password, 10);
     const newUser = new User({
-      userName,
+      username,
       email,
       role,
       password: hash,
       groupBy,
       createdBy: req.user.userId,
     });
+    await newUser.save();
     res.status(201).json({ msg: "User created", userId: newUser.userId });
   } catch (err) {
     console.error(err);
