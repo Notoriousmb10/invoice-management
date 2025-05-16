@@ -1,12 +1,12 @@
 const express = require("express");
+const router = express.Router();
 const { authenticateUserr , authorizeDRoles } = require("../middleware/authMiddle");
-import { createUser } from "../controllers/userController";
-import {
+const {
     createUser,
     updateUser,
     deleteUser,
     listUsers
-} from "../controllers/userController";
+} = require("../controllers/userController");
 router.post(
     '/create',
     authenticateUserr,
@@ -25,7 +25,7 @@ router.delete(
     "/:userId",
     authenticateUserr,
     authorizeDRoles("SUPERADMIN", "ADMIN"),
-    deleteUserget
+    deleteUser
 );
 
 router.get(

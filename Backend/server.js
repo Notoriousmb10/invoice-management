@@ -3,18 +3,18 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-const userRouteshandle = require('./routes/userRouteshandle');
-const invoiceRouteshandle = require('./routes/invoiceRouteshandle');
-const authRouteshandle = require('./routes/authRouteshandle');
+const userRoutes = require('./routes/userRoutes');
+const invoiceRoutes = require('./routes/invoiceRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/api/auth", authRouteshandle);
-app.use("/api/user", userRouteshandle);
-app.use("/api/invoice", invoiceRouteshandle);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/invoice", invoiceRoutes);
 
-mongoose.connect(process.env.MONGODB_RI, {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })

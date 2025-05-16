@@ -8,35 +8,35 @@ const {
 } = require("../controllers/invoiceController");
 
 const {
-  authenticateUser,
-  authorizeRoles,
-} = require("../middleware/authMiddleware");
+  authenticateUserr,
+  authorizeDRoles,
+} = require("../middleware/authMiddle");
 
 router.post(
   "/create",
-  authenticateUser,
-  authorizeRoles("ADMIN", "UNITMANAGER", "USER"),
+  authenticateUserr,
+  authorizeDRoles("ADMIN", "UNITMANAGER", "USER"),
   createInvoice
 );
 
 router.patch(
   "/update/:invoiceNumber",
-  authenticateUser,
-  authorizeRoles("ADMIN", "UNITMANAGER"),
+  authenticateUserr,
+  authorizeDRoles("ADMIN", "UNITMANAGER"),
   updateInvoice
 );
 
 router.delete(
   "/delete/:invoiceNumber",
-  authenticateUser,
-  authorizeRoles("ADMIN", "UNITMANAGER"),
+  authenticateUserr,
+  authorizeDRoles("ADMIN", "UNITMANAGER"),
   deleteInvoice
 );
 
 router.get(
   "/",
-  authenticateUser,
-  authorizeRoles("ADMIN", "UNITMANAGER", "USER"),
+  authenticateUserr,
+  authorizeDRoles("ADMIN", "UNITMANAGER", "USER"),
   listallInvoices
 );
 
