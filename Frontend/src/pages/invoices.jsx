@@ -248,7 +248,7 @@ const role = decoded.role;
                     </td>
                     <td className="p-3">₹ {inv.invoiceAmount}</td>
                     <td className="p-3">{inv.financialYear}</td>
-                    
+                      {role !== "USER" && (
                     <td className="p-3 flex gap-2">
                       <button
                         onClick={() => handleEditClick(inv)}
@@ -264,7 +264,7 @@ const role = decoded.role;
                         Delete
                       </button>
                     </td>
-                
+                       )}
                   </tr>
                 )
               )}
