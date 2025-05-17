@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/axios";
-
+import { jwtDecode } from "jwt-decode";
 const Invoices = () => {
+  const token = localStorage.getItem("token");
+const decoded = jwtDecode(token);
+const role = decoded.role;
   const [invoices, setInvoices] = useState([]);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [filters, setFilters] = useState({
@@ -99,7 +102,7 @@ const Invoices = () => {
    <div className="min-h-screen bg-gray-100 pl-64 flex">
     <div className="flex-1 max-w-5xl mx-auto p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">📄 Invoice Management</h1>
-
+      
         <div className="bg-white shadow-md rounded-lg p-6 mb-10">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">➕ Create Invoice</h2>
           <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -193,7 +196,9 @@ const Invoices = () => {
                 <th className="p-3 text-left">Date</th>
                 <th className="p-3 text-left">Amount</th>
                 <th className="p-3 text-left">FY</th>
+                {role !== "USER" && (
                 <th className="p-3 text-left">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -243,6 +248,7 @@ const Invoices = () => {
                     </td>
                     <td className="p-3">₹ {inv.invoiceAmount}</td>
                     <td className="p-3">{inv.financialYear}</td>
+                    
                     <td className="p-3 flex gap-2">
                       <button
                         onClick={() => handleEditClick(inv)}
@@ -250,6 +256,7 @@ const Invoices = () => {
                       >
                         Edit
                       </button>
+                     
                       <button
                         onClick={() => handleDelete(inv.invoiceNumber)}
                         className="bg-red-500 text-white px-3 py-1 rounded"
@@ -257,6 +264,7 @@ const Invoices = () => {
                         Delete
                       </button>
                     </td>
+                
                   </tr>
                 )
               )}

@@ -116,7 +116,7 @@ const Users = () => {
      <div className="min-h-screen bg-gray-100 pl-64 flex">
     <div className="flex-1 max-w-5xl mx-auto p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">👥 User Management</h1>
-
+    {role !== "USER" && (
         <div className="bg-white shadow-md rounded-lg p-6 mb-10">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">➕ Create New User</h2>
           <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,6 +165,7 @@ const Users = () => {
             </button>
           </form>
         </div>
+        )}
 
         <div className="bg-white shadow-lg rounded-lg overflow-x-auto">
           <table className="w-full table-auto text-sm">
