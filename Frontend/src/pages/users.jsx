@@ -205,6 +205,13 @@ const Users = () => {
                               {/* <option value="USER">USER</option> */}
                             </>
                           )}
+                          {role === "UNITMANAGER" && (
+                            <>
+                              <option value="USER">USER</option>
+                              {/* <option value="UNITMANAGER">UNIT MANAGER</option> */}
+                              {/* <option value="USER">USER</option> */}
+                            </>
+                          )}
                         </select>
                       </td>
                       <td className="p-3 flex gap-2">
