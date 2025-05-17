@@ -12,17 +12,25 @@ const Users = () => {
     groupId: "",
   });
   const [page, setPage] = useState(1);
-  const role = jwtDecode(localStorage.getItem("token")).role;
+  const [editingUser, setEditingUser] = useState(null);
+  const [editRole, setEditRole] = useState("");
 
+  const token = localStorage.getItem("token");
+  const decoded = jwtDecode(token);
+  const role = decoded.role;
+  const myUserId = decoded.userId;
 
   const fetchUsers = async () => {
     try {
       const res = await API.get(`/user?page=${page}`);
-      if (role === 'ADMIN') {
+      
+      if (role === "ADMIN") {
         res.data.users = res.data.users.filter((user) => user.role !== "SUPERADMIN");
-      } else if (role === 'UNITMANAGER') {
-        res.data.users = res.data.users.filter((user) => user.role !== "ADMIN" && user.role !== "SUPERADMIN");
-      } else if (role === 'USER') {
+      } else if (role === "UNITMANAGER") {
+        res.data.users = res.data.users.filter(
+          (user) => user.role !== "ADMIN" && user.role !== "SUPERADMIN"
+        );
+      } else if (role === "USER") {
         res.data.users = res.data.users.filter(
           (user) =>
             user.role !== "ADMIN" &&
@@ -31,6 +39,8 @@ const Users = () => {
         );
       }
       setUsers(res.data.users);
+      console.log(res.data.users);
+      console.log(myUserId)
     } catch (err) {
       console.error(err.response?.data?.msg);
     }
@@ -38,7 +48,6 @@ const Users = () => {
 
   useEffect(() => {
     fetchUsers();
-    alert(role)
   }, [page]);
 
   const handleCreate = async (e) => {
@@ -59,6 +68,30 @@ const Users = () => {
     }
   };
 
+  const handleEditClick = (user) => {
+    setEditingUser(user.userId);
+    setEditRole(user.role);
+  };
+
+  const handleEditRoleChange = (e) => {
+    setEditRole(e.target.value);
+  };
+
+  const handleUpdate = async (userId) => {
+    try {
+      await API.patch("/user/update-role", { userId, newRole: editRole });
+      alert("User updated");
+      setEditingUser(null);
+      fetchUsers();
+    } catch (err) {
+      alert(err.response?.data?.msg || "Update failed");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+  };
+
   const handleDelete = async (userId) => {
     if (!window.confirm(`Delete user ${userId}?`)) return;
     try {
@@ -70,95 +103,158 @@ const Users = () => {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">User Management</h1>
+    <div className="p-8 bg-gray-100 min-h-screen">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">👥 User Management</h1>
 
-      <form
-        onSubmit={handleCreate}
-        className="space-y-3 bg-white p-4 rounded shadow mb-6"
-      >
-        <h2 className="text-lg font-semibold">Create New User</h2>
-        <input
-          type="text"
-          placeholder="username"
-          value={newUser.username}
-          onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-          className="border p-2 w-full"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={newUser.email}
-          onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-          className="border p-2 w-full"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={newUser.password}
-          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-          className="border p-2 w-full"
-        />
-        <input
-          type="text"
-          placeholder="Group ID (optional)"
-          value={newUser.groupId}
-          onChange={(e) => setNewUser({ ...newUser, groupId: e.target.value })}
-          className="border p-2 w-full"
-        />
-        <select
-          value={newUser.role}
-          onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-          className="border p-2 w-full"
-        >
-          {role === "SUPERADMIN" && <option value="ADMIN">ADMIN</option>}
-          {role === "ADMIN" && <option value="UNITMANAGER">UNIT MANAGER</option>}
-          {role === "UNITMANAGER" && <option value="USER">USER</option>}
-        </select>
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Create
-        </button>
-      </form>
+        <div className="bg-white shadow-md rounded-lg p-6 mb-10">
+          <h2 className="text-xl font-semibold mb-4 text-gray-700">➕ Create New User</h2>
+          <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Username"
+              value={newUser.username}
+              onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+              className="border border-gray-300 p-2 rounded"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={newUser.email}
+              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              className="border border-gray-300 p-2 rounded"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={newUser.password}
+              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              className="border border-gray-300 p-2 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Group ID (optional)"
+              value={newUser.groupId}
+              onChange={(e) => setNewUser({ ...newUser, groupId: e.target.value })}
+              className="border border-gray-300 p-2 rounded"
+            />
+            <select
+              value={newUser.role}
+              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+              className="border border-gray-300 p-2 rounded"
+            >
+              {role === "SUPERADMIN" && <option value="ADMIN">ADMIN</option>}
+              {role === "ADMIN" && <option value="UNITMANAGER">UNIT MANAGER</option>}
+              {role === "UNITMANAGER" && <option value="USER">USER</option>}
+            </select>
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded col-span-1 md:col-span-2"
+            >
+              Create User
+            </button>
+          </form>
+        </div>
 
-      <table className="w-full table-auto border">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2">UserID</th>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Role</th>
-            <th className="border p-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users?.map((u) => (
-            <tr key={u._id}>
-              <td className="border p-2">{u.userId}</td>
-              <td className="border p-2">{u.username}</td>
-              <td className="border p-2">{u.email}</td>
-              <td className="border p-2">{u.role}</td>
-              <td className="border p-2">
-                <button
-                  onClick={() => handleDelete(u.userId)}
-                  className="bg-red-500 text-white px-2 py-1 rounded"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="bg-white shadow-lg rounded-lg overflow-x-auto">
+          <table className="w-full table-auto text-sm">
+            <thead className="bg-gray-200 text-gray-700">
+              <tr>
+                <th className="p-3 text-left">User ID</th>
+                <th className="p-3 text-left">Username</th>
+                <th className="p-3 text-left">Email</th>
+                <th className="p-3 text-left">Role</th>
+                <th className="p-3 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users
+                ?.filter((u) => u._id != myUserId)
+                .map((u) =>
+                  editingUser === u.userId ? (
+                    <tr key={u._id} className="bg-yellow-50">
+                      <td className="p-3">{u.userId}</td>
+                      <td className="p-3">{u.username}</td>
+                      <td className="p-3">{u.email}</td>
+                      <td className="p-3">
+                        <select
+                          value={editRole}
+                          onChange={handleEditRoleChange}
+                          className="border p-1 rounded"
+                        >
+                          {role === "SUPERADMIN" && (
+                            <>
+                              <option value="ADMIN">ADMIN</option>
+                              <option value="UNITMANAGER">UNIT MANAGER</option>
+                              <option value="USER">USER</option>
+                            </>
+                          )}
+                          {role === "ADMIN" && (
+                            <>
+                              <option value="UNITMANAGER">UNIT MANAGER</option>
+                              <option value="USER">USER</option>
+                            </>
+                          )}
+                        </select>
+                      </td>
+                      <td className="p-3 flex gap-2">
+                        <button
+                          onClick={() => handleUpdate(u.userId)}
+                          className="bg-blue-500 text-white px-3 py-1 rounded"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="bg-gray-400 text-white px-3 py-1 rounded"
+                        >
+                          Cancel
+                        </button>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={u._id} className="hover:bg-gray-50">
+                      <td className="p-3">{u.userId}</td>
+                      <td className="p-3">{u.username}</td>
+                      <td className="p-3">{u.email}</td>
+                      <td className="p-3">{u.role}</td>
+                      <td className="p-3 flex gap-2">
+                        <button
+                          onClick={() => handleEditClick(u)}
+                          className="bg-yellow-500 text-white px-3 py-1 rounded"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(u.userId)}
+                          className="bg-red-500 text-white px-3 py-1 rounded"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="flex justify-between mt-4">
-        <button onClick={() => setPage(page - 1)} disabled={page === 1}>
-          ⬅ Prev
-        </button>
-        <span>Page {page}</span>
-        <button onClick={() => setPage(page + 1)}>Next ➡</button>
+        <div className="flex justify-between items-center mt-6">
+          <button
+            onClick={() => setPage(page - 1)}
+            disabled={page === 1}
+            className="bg-gray-300 px-3 py-1 rounded disabled:opacity-50"
+          >
+            ⬅ Prev
+          </button>
+          <span className="text-gray-600">Page {page}</span>
+          <button
+            onClick={() => setPage(page + 1)}
+            className="bg-gray-300 px-3 py-1 rounded"
+          >
+            Next ➡
+          </button>
+        </div>
       </div>
     </div>
   );

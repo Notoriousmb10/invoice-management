@@ -21,7 +21,7 @@ const Login = () => {
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
         const role = jwtDecode(res.data.token).role;
-        navigate("/dashboard", { state: { role } });
+        navigate("/users", { state: { role } });
       } else {
         alert("Login failed: No token received.");
       }
