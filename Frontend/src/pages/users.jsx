@@ -4,20 +4,29 @@ import { jwtDecode } from "jwt-decode";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
+  const token = localStorage.getItem("token");
+  const decoded = jwtDecode(token);
+  const role = decoded.role;
   const [newUser, setNewUser] = useState({
-    username: "",
-    email: "",
-    role: "USER",
-    password: "",
-    groupId: "",
-  });
+  username: "",
+  email: "",
+  role: role === "SUPERADMIN"
+    ? "ADMIN"
+    : role === "ADMIN"
+    ? "UNITMANAGER"
+    : role === "UNITMANAGER"
+    ? "USER"
+    : "",
+  password: "",
+  groupId: "",
+});
   const [page, setPage] = useState(1);
   const [editingUser, setEditingUser] = useState(null);
   const [editRole, setEditRole] = useState("");
 
-  const token = localStorage.getItem("token");
-  const decoded = jwtDecode(token);
-  const role = decoded.role;
+  
+  
+  
   const myUserId = decoded.userId;
 
   const fetchUsers = async () => {
@@ -53,13 +62,14 @@ const Users = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
+      console.log(newUser);
       await API.post("/user/create", newUser);
       alert("User created successfully");
       fetchUsers();
       setNewUser({
         username: "",
         email: "",
-        role: "USER",
+        role: "",
         password: "",
         groupId: "",
       });
@@ -144,7 +154,7 @@ const Users = () => {
               className="border border-gray-300 p-2 rounded"
             >
               {role === "SUPERADMIN" && <option value="ADMIN">ADMIN</option>}
-              {role === "ADMIN" && <option value="UNITMANAGER">UNIT MANAGER</option>}
+              {role === "ADMIN" && <option value="UNITMANAGER">UNITMANAGER</option>}
               {role === "UNITMANAGER" && <option value="USER">USER</option>}
             </select>
             <button
