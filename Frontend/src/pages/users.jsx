@@ -195,14 +195,14 @@ const Users = () => {
                           {role === "SUPERADMIN" && (
                             <>
                               <option value="ADMIN">ADMIN</option>
-                              <option value="UNITMANAGER">UNIT MANAGER</option>
-                              <option value="USER">USER</option>
+                              {/* <option value="UNITMANAGER">UNIT MANAGER</option> */}
+                              {/* <option value="USER">USER</option> */}
                             </>
                           )}
                           {role === "ADMIN" && (
                             <>
                               <option value="UNITMANAGER">UNIT MANAGER</option>
-                              <option value="USER">USER</option>
+                              {/* <option value="USER">USER</option> */}
                             </>
                           )}
                         </select>
