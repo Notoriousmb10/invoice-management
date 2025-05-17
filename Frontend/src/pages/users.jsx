@@ -103,8 +103,8 @@ const Users = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <div className="max-w-5xl mx-auto">
+     <div className="min-h-screen bg-gray-100 pl-64 flex">
+    <div className="flex-1 max-w-5xl mx-auto p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">👥 User Management</h1>
 
         <div className="bg-white shadow-md rounded-lg p-6 mb-10">

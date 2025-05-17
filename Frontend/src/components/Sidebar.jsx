@@ -13,7 +13,9 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="h-screen w-64 bg-[#02325A] text-white flex flex-col shadow-lg">
+    <aside
+      className="fixed top-0 left-0 h-screen w-64 bg-[#02325A] text-white flex flex-col shadow-lg z-50 mr-10"
+    >
       <div className="p-6 border-b border-gray-700 flex flex-col items-center gap-3">
         <img
           src={logo}
